@@ -99,3 +99,40 @@ This framework is still under development.
 ---
 
 **Note:** This framework is intended for developers who want a lightweight, modular tensor library for C++ with CPU optimization support.
+
+# Usage
+
+* How to import
+```c++
+#include <cpu/TensorOps.h>
+```
+
+## Tensor basic operation
+
+* Tensor variable
+  ```c++
+Tensor<vectra::int8> T;
+Tensor<vectra::int16> T;
+Tensor<vectra::int32> T;
+Tensor<vectra::float32> T;
+Tensor<vectra::float64> T;
+  ```
+
+* Tensor ops
+```c++
+full({3, 3}, 1.0f); // Maximum dimension is 32
+zeros({3, 3});
+ones({3, 3});
+twos({3 ,3});
+
+dot(Tensor A, Tensor B);
+```
+
+* Tensor arithmetic
+``` c++
+// Parameter
+add(Tensor A, Tensor B);
+sub(Tensor A, Tensor B);
+mul(Tensor A, Tensor B);
+div(Tensor A, Tensor B);
+```

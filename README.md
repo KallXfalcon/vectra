@@ -52,3 +52,4 @@ This framework still under development
 # Release
 
 **This framework might released in 25 December 2025 for Python (Christmas)**
+**This framework might finished in the end of the year 2025**

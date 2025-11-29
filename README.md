@@ -58,25 +58,8 @@ target_link_libraries(example PRIVATE TenLib utility KerLow)
 ```bash
 git clone https://github.com/KallXfalcon/vectra.git
 ```
-3. Create a new project directory inside your home `C:/Users/YourUsername/`.
-4. Inside your project directory, create a `CMakeLists.txt` file with the following content:
-
-```cmake
-cmake_minimum_required(VERSION 3.28) # Make sure the version is correct (3.28) or use the latest
-
-set(CMAKE_CXX_STANDARD 17)
-
-# Subdirectory for Tensor implementation
-add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/TenLib ${CMAKE_BINARY_DIR}/TenLib_build)  # Main Tensor headers
-add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/KerLow ${CMAKE_BINARY_DIR}/KerLow_build)  # Data types (int8, int16, int32, float32, float64)
-add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/utils ${CMAKE_BINARY_DIR}/utils_build)    # Utilities used inside Tensor headers
-
-# Your executable file
-add_executable(example main.cpp) # Replace 'main.cpp' with your file name
-
-# Link with Vectra framework
-target_link_libraries(example PRIVATE TenLib utility KerLow)
-```
+3. Go to the vectra project folder and open test (vectra/test)
+4. Inside test there are CMakeLists.txt you can edit the executable
 
 ## More Information
 

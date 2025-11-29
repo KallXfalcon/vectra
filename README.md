@@ -110,13 +110,13 @@ This framework is still under development.
 ## Tensor basic operation
 
 * Tensor variable
-  ```c++
+```c++
 Tensor<vectra::int8> T;
 Tensor<vectra::int16> T;
 Tensor<vectra::int32> T;
 Tensor<vectra::float32> T;
 Tensor<vectra::float64> T;
-  ```
+```
 
 * Tensor ops
 ```c++

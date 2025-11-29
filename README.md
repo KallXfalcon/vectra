@@ -44,11 +44,11 @@ target_link libraries(example PRIVATE TenLib utility KerLow)
 # More Info
 This framework still under development
 
-** SUPPORT **
+**SUPPORT**
 * CPU - based on SIMD (SSE, SSE2, AVX, AVX2) "AVX512" coming soon
 
-** VERSION ; 1.0 **
+**VERSION ; 1.0**
 
 # Release
 
-** This framework might released in 25 December 2025 for Python (Christmas) **
+**This framework might released in 25 December 2025 for Python (Christmas)**

@@ -124,6 +124,8 @@ full({3, 3}, 1.0f); // Maximum dimension is 32
 zeros({3, 3});
 ones({3, 3});
 twos({3 ,3});
+rand({3, 3});
+randn({3, 3});
 
 dot(Tensor A, Tensor B);
 ```

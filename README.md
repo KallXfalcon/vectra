@@ -2,54 +2,73 @@
 
 **A Tiny Tensor Framework**
 
+---
+
 ## Installation
 
-Clone the repository:
+### Clone the repository
 
 ```bash
 git clone https://github.com/KallXfalcon/vectra.git
-
 ```
 
-Make sure it's cloned into the desired location:
+Make sure it is cloned into the desired location:
 
 * **Linux:** `/home/YourUsername/vectra`
 * **Windows:** `C:\Users\YourUsername\vectra`
 
-**Installation & setup instruction for Linux**
-* First step open terminal as default user (NOT SUPER USER) and it will directly inside of home/YourUsername
-* Second step run this after do first step
+---
+
+## Installation & Setup Instructions for Linux
+
+1. Open the terminal as your default user (not as superuser). You should start inside `/home/YourUsername`.
+2. Clone the repository (if not already done):
+
 ```bash
 git clone https://github.com/KallXfalcon/vectra.git
-
 ```
-* Third step create new PROJECT dir inside of home/YourUsername
-* Fourth step create a CMakeLists.txt inside of PROJECT that you want implement vectra and write this inside CMakeLists.txt
-```bash
-cmake_minimum_required(VERSION 3.28) # Make sure the version is correct (3.28) use latest
+
+3. Create a new project directory inside `/home/YourUsername`.
+
+4. Inside your project directory, create a `CMakeLists.txt` file with the following content:
+
+```cmake
+cmake_minimum_required(VERSION 3.28) # Make sure the version is correct (3.28) or use the latest
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Subdirectory for implement Tensor
-add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/TenLib ${CMAKE_BINARY_DIR}/TenLib_build)  # Main Tensor header are here
-add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/KerLow ${CMAKE_BINARY_DIR}/KerLow_build)  # For data type (e.g int8, int16, int32, float32, float64)
-add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/utils ${CMAKE_BINARY_DIR}/utils_build)    # utility that used inside of Tensor header
+# Subdirectory for Tensor implementation
+add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/TenLib ${CMAKE_BINARY_DIR}/TenLib_build)  # Main Tensor headers
+add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/KerLow ${CMAKE_BINARY_DIR}/KerLow_build)  # Data types (int8, int16, int32, float32, float64)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../vectra/utils ${CMAKE_BINARY_DIR}/utils_build)    # Utilities used inside Tensor headers
 
-# executable your file that you wanted to execute
-add_executable(example main.cpp) # or if you use another name -> file-name.cpp
+# Your executable file
+add_executable(example main.cpp) # Replace 'main.cpp' with your file name
 
-# Link into the framework
-target_link libraries(example PRIVATE TenLib utility KerLow)
+# Link with the Vectra framework
+target_link_libraries(example PRIVATE TenLib utility KerLow)
 ```
-# More Info
-This framework still under development
 
-**SUPPORT**
-* CPU - based on SIMD (SSE, SSE2, AVX, AVX2) "AVX512" coming soon
+---
 
-**VERSION ; 1.0**
+## More Information
 
-# Release
+This framework is still under development.
 
-**This framework might released in 25 December 2025 for Python (Christmas)**
-**This framework might finished in the end of the year 2025**
+**Supported CPU Features:**
+
+* SIMD-based operations: SSE, SSE2, AVX, AVX2
+* AVX512 support is coming soon
+
+**Version:** 1.0
+
+---
+
+## Release Schedule
+
+* Python bindings (if applicable) might be released on **December 25, 2025 (Christmas)**
+* Full framework completion expected by **end of 2025**
+
+---
+
+**Note:** This framework is intended for developers who want a lightweight, modular tensor library for C++ with CPU optimization support.

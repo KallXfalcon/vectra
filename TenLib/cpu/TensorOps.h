@@ -292,6 +292,21 @@ Tensor<T> dot(const Tensor<T>& A, const Tensor<T>& B)
     }
 }
 
+template<typename T>
+Tensor<T> flatten(const Tensor<T>& t1)
+{
+    size_t total = 1;
+    for (size_t dim : t1.shape)
+        total *= dim;
+
+    Tensor<T> out({ total }, T{0 });
+
+    for (size_t i = 0; i < total; ++i)
+        out.data.data[i] = t1.data.data[i];
+
+    return out;
+}
+
 #endif // __cplusplus
 
 #endif // TENSOROPS_H

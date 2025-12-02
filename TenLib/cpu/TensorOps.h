@@ -1,7 +1,10 @@
 
 /*
  *
- * TensorOps.h (v1.0)
+ * TensorOps.h (v1.1)
+ * 
+ * v1.1 updated : rand, randn, arithmetic bug fixed!
+ *                added new operation(flatten, sum)
  * 
  * Copyright(C) 2025 KallXfalcon
  * GitHub : https://github.com/KallXfalcon
@@ -23,9 +26,11 @@
 
 #include <ScalarType/ScalarType.h>
 #include <VectorUtility/vector.h>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <random>
 #include <cmath>
 
 template<typename T>
@@ -33,6 +38,16 @@ class Tensor {
 public:
     std::vector<size_t> shape;
     utils::vector<ScalarType<T>> data;
+
+    Tensor() = default;
+
+    Tensor(const std::vector<size_t>& shape_)
+        : shape(shape_)
+    {
+        size_t total = 1;
+        for (auto dim : shape_) total *= dim;
+        data.resize(total);
+    }
 
     Tensor(const std::vector<size_t>& shape_, const T value)
     : shape(shape_.begin(), shape_.end())
@@ -132,6 +147,22 @@ std::ostream& operator<<(std::ostream& os, const Tensor<T>& t)
     return os;
 }
 
+/*
+ *
+ * TEMPLATE FOR TENSOR OPERATION
+ * 
+*/
+
+template<typename T>
+T maxArrayTemplate(const T* array, int n)
+{
+    T mx = array[0];
+    for(size_t i=1; i<n; i++){
+        if(array[i] > mx) mx = array[i];
+    }
+    return mx;
+}
+
 /*==============================|
  *                              |
  *                              |
@@ -169,60 +200,70 @@ Tensor<T> twos(const std::vector<size_t>& shape)
 template<typename T>
 Tensor<T> rand(const std::vector<size_t>& shape)
 {
-    return Tensor<T>(shape, T{(rand() + 1.0 / (RAND_MAX + 2.0))});
+    Tensor<T> out(shape);
+
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<T> dist(0.0, 1.0);
+
+    for (size_t i = 0; i < out.data.size(); i++) out.data.data[i] = dist(gen);
+
+    return out;
 }
 
 template<typename T>
 Tensor<T> randn(const std::vector<size_t>& shape)
 {
-    T u1 = ((rand() + T{1}) / (RAND_MAX + T{2}));
-    T u2 = ((rand() + T{1}) / (RAND_MAX + T{2}));
+    Tensor<T> out(shape);
 
-    return Tensor<T>(shape, sqrt(T{-2} * log(u1)) * cos(T{2} * M_PI * u2));
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::normal_distribution<T> dist(0, 1);
+
+    for (size_t i = 0; i < out.data.size(); i++) out.data.data[i] = dist(gen);
+
+    return out;
 }
 
 template<typename T>
 Tensor<T> add(const Tensor<T>& A, const Tensor<T>& B)
 {
-    if(A.Data.size() != B.Data.size() || A.shape != B.shape){
+    if(A.data.size() != B.data.size() || A.shape != B.shape){
         fprintf(stderr, "vectra add() : Shape doesn't match!\n");
     }
     Tensor<T> out(A.shape, T{0});
-    for (size_t i = 0; i < A.Data.size(); ++i)
-        out.Data[i] = A.Data[i] + B.Data[i];
+    for (size_t i = 0; i < A.data.size(); ++i) out.data.data[i] = A.data.data[i] + B.data.data[i];
     return out;
 }
 
 template<typename T>
 Tensor<T> sub(const Tensor<T>& A, const Tensor<T>& B)
 {
-    if(A.Data.size() != B.Data.size() || A.shape != B.shape){
+    if(A.data.size() != B.data.size() || A.shape != B.shape){
         fprintf(stderr, "vectra sub() : Shape doesn't match!\n");
         exit(EXIT_FAILURE);
     }
     Tensor<T> out(A.shape, T{0});
-    for (size_t i = 0; i < A.Data.size(); ++i)
-        out.Data[i] = A.Data[i] - B.Data[i];
+    for (size_t i = 0; i < A.data.size(); ++i) out.data.data[i] = A.data[i] - B.data.data[i];
     return out;
 }
 
 template<typename T>
 Tensor<T> mul(const Tensor<T>& A, const Tensor<T>& B)
 {
-    if(A.Data.size() != B.Data.size() || A.shape != B.shape){
+    if(A.data.size() != B.data.size() || A.shape != B.shape){
         fprintf(stderr, "vectra mul() : Shape doesn't match!\n");
         exit(EXIT_FAILURE);
     }
     Tensor<T> out(A.shape, T{0});
-    for (size_t i = 0; i < A.Data.size(); ++i)
-        out.Data[i] = A.Data[i] * B.Data[i];
+    for (size_t i = 0; i < A.data.size(); ++i) out.data[i] = A.data.data[i] * B.data.data[i];
     return out;
 }
 
 template<typename T>
 Tensor<T> div(const Tensor<T>& A, const Tensor<T>& B)
 {
-    if(A.Data.size() != B.Data.size() || A.shape != B.shape){
+    if(A.data.size() != B.data.size() || A.shape != B.shape){
         fprintf(stderr, "vectra div() : Shape doesn't match!\n");
         exit(EXIT_FAILURE);
     }
@@ -232,7 +273,7 @@ Tensor<T> div(const Tensor<T>& A, const Tensor<T>& B)
             fprintf(stderr, "vectra div() : cannot divide by zero!\n");
             exit(EXIT_FAILURE);
         }
-        out.Data[i] = A.Data[i] / B.Data[i];
+        out.data.data[i] = A.data.data[i] / B.data.data[i];
     }
     return out;
 }
@@ -293,6 +334,16 @@ Tensor<T> dot(const Tensor<T>& A, const Tensor<T>& B)
 }
 
 template<typename T>
+Tensor<T> max(const Tensor<T>& t1)
+{
+    Tensor<T> out({1}, 0);
+
+    out.data.data[0] = maxArrayTemplate(t1.data.data, t1.data.size);
+
+    return out;
+}
+
+template<typename T>
 Tensor<T> flatten(const Tensor<T>& t1)
 {
     size_t total = 1;
@@ -301,8 +352,21 @@ Tensor<T> flatten(const Tensor<T>& t1)
 
     Tensor<T> out({ total }, T{0 });
 
-    for (size_t i = 0; i < total; ++i)
-        out.data.data[i] = t1.data.data[i];
+    for (size_t i = 0; i < total; ++i) out.data.data[i] = t1.data.data[i];
+
+    return out;
+}
+
+template<typename T>
+Tensor<T> sum(const Tensor<T>& t1)
+{
+    size_t total = 1;
+    for(auto dim : t1.shape) total *= dim;
+
+    Tensor<T> out({1}, 0);
+
+    for(size_t i = 0; i < total; i++)
+        out.data.data[0] += t1.data.data[i];
 
     return out;
 }

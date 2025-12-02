@@ -1,7 +1,9 @@
 
 /*
  *
- * ScalarType.h (v1.0)
+ * ScalarType.h (v1.1)
+ * 
+ * v1.1 updated : added operator(+, -, *, /)
  * 
  * Copyright(C) 2025 KallXfalcon
  * GitHub : https://github.com/KallXfalcon
@@ -33,6 +35,14 @@ namespace vectra {
     using float32= float;
     using float64= double;
 }
+
+enum class DType{
+    Int8,
+    Int16,
+    Int32,
+    Float32,
+    Float64
+};
 
 #ifndef USE_VECTRA_SSE
 #define USE_VECTRA_SSE
@@ -144,13 +154,236 @@ public:
     ScalarType& operator=(const T& val) {
         u.scalar = val;
         if constexpr (!simd_is_same) {
-#if defined(USE_VECTRA_AVX)
+    #if defined(USE_VECTRA_AVX)
             u.simd = m256::simd_set(val);
-#elif defined(USE_VECTRA_SSE)
+    #elif defined(USE_VECTRA_SSE)
             u.simd = m128::simd_set(val);
-#endif
+    #endif
         }
         return *this;
+    }
+
+    ScalarType& operator+=(const ScalarType& other){
+        u.scalar += other.u.scalar;
+
+        if constexpr (!simd_is_same) {
+    #if defined(USE_VECTRA_AVX)
+            u.simd = m256::simd_set(u.scalar);
+    #elif defined(USE_VECTRA_SSE)
+            u.simd = m128::simd_set(u.scalar);
+    #endif
+        }
+
+        return *this;
+    }
+
+    ScalarType operator+(const ScalarType& other) const {
+        ScalarType result(0);
+
+        if constexpr (simd_is_same) {
+            result.u.scalar = u.scalar + other.u.scalar;
+        } else {
+    #if defined(USE_VECTRA_AVX)
+            if constexpr(std::is_same_v<T, vectra::int8>){
+                result.u.simd = _mm256_add_epi8(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int16>){
+                result.u.simd = _mm256_add_epi16(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int32>){
+                result.u.simd = _mm256_add_epi32(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm256_add_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm256_add_pd(u.simd, other.u.simd);
+            }
+            else {
+                result.u.simd = _mm256_add_epi32(u.simd, other.u.simd);
+            }
+    #elif defined(USE_VECTRA_SSE)
+            if constexpr(std::is_same_v<T, vectra::int8>){
+                result.u.simd = _mm_add_epi8(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int16>){
+                result.u.simd = _mm_add_epi16(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int32>){
+                result.u.simd = _mm_add_epi32(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm_add_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm_add_pd(u.simd, other.u.simd);
+            }
+            else {
+                result.u.simd = _mm_add_epi32(u.simd, other.u.simd);
+            }
+    #endif
+            result.u.scalar = result.get_scalar();
+        }
+
+        return result;
+    }
+
+    ScalarType operator-(const ScalarType& other) const {
+        ScalarType result(0);
+
+        if constexpr (simd_is_same) {
+            result.u.scalar = u.scalar - other.u.scalar;
+        } else {
+    #if defined(USE_VECTRA_AVX)
+            if constexpr(std::is_same_v<T, vectra::int8>){
+                result.u.simd = _mm256_sub_epi8(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int16>){
+                result.u.simd = _mm256_sub_epi16(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int32>){
+                result.u.simd = _mm256_sub_epi32(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm256_sub_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm256_sub_pd(u.simd, other.u.simd);
+            }
+            else {
+                result.u.simd = _mm256_sub_epi32(u.simd, other.u.simd);
+            }
+    #elif defined(USE_VECTRA_SSE)
+            if constexpr(std::is_same_v<T, vectra::int8>){
+                result.u.simd = _mm_sub_epi8(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int16>){
+                result.u.simd = _mm_sub_epi16(u.simd, other.u.simd);
+            }
+            else if constexpr(std::is_same_v<T, vectra::int32>){
+                result.u.simd = _mm_sub_epi32(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm_sub_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm_sub_pd(u.simd, other.u.simd);
+            }
+            else {
+                result.u.simd = _mm_sub_epi32(u.simd, other.u.simd);
+            }
+    #endif
+            result.u.scalar = result.get_scalar();
+        }
+
+        return result;
+    }
+
+    ScalarType operator*(const ScalarType& other) const {
+        ScalarType result(0);
+
+        if constexpr (simd_is_same) {
+            result.u.scalar = u.scalar * other.u.scalar;
+        } 
+        else 
+        {
+
+    #if defined(USE_VECTRA_AVX)
+
+            if constexpr (std::is_same_v<T, vectra::int8>) {
+                __m128i loA = _mm_cvtepi8_epi16(_mm256_castsi256_si128(u.simd));
+                __m128i loB = _mm_cvtepi8_epi16(_mm256_castsi256_si128(other.u.simd));
+                __m128i loR = _mm_mullo_epi16(loA, loB);
+
+                __m128i hiA = _mm_cvtepi8_epi16(_mm256_extracti128_si256(u.simd, 1));
+                __m128i hiB = _mm_cvtepi8_epi16(_mm256_extracti128_si256(other.u.simd, 1));
+                __m128i hiR = _mm_mullo_epi16(hiA, hiB);
+
+                result.u.simd = _mm256_set_m128i(hiR, loR);
+            }
+            else if constexpr (std::is_same_v<T, vectra::int16>) {
+                result.u.simd = _mm256_mullo_epi16(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::int32>) {
+                result.u.simd = _mm256_mullo_epi32(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm256_mul_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm256_mul_pd(u.simd, other.u.simd);
+            }
+
+    #elif defined(USE_VECTRA_SSE)
+
+            if constexpr (std::is_same_v<T, vectra::int8>) {
+                __m128i a16 = _mm_cvtepi8_epi16(u.simd);
+                __m128i b16 = _mm_cvtepi8_epi16(other.u.simd);
+                result.u.simd = _mm_mullo_epi16(a16, b16);
+            }
+            else if constexpr (std::is_same_v<T, vectra::int16>) {
+                result.u.simd = _mm_mullo_epi16(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::int32>) {
+                result.u.simd = _mm_mullo_epi32(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm_mul_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm_mul_pd(u.simd, other.u.simd);
+            }
+
+    #endif
+
+            result.u.scalar = result.get_scalar();
+        }
+
+        return result;
+    }
+
+    ScalarType operator/(const ScalarType& other) const {
+        ScalarType result(0);
+
+        if constexpr (simd_is_same) {
+            result.u.scalar = u.scalar / other.u.scalar;
+        }
+        else 
+        {
+
+    #if defined(USE_VECTRA_AVX)
+
+            if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm256_div_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm256_div_pd(u.simd, other.u.simd);
+            }
+            else {
+                T a = u.scalar;
+                T b = other.u.scalar;
+                result.u.scalar = a / b;
+                return result;
+            }
+
+    #elif defined(USE_VECTRA_SSE)
+
+            if constexpr (std::is_same_v<T, vectra::float32>) {
+                result.u.simd = _mm_div_ps(u.simd, other.u.simd);
+            }
+            else if constexpr (std::is_same_v<T, vectra::float64>) {
+                result.u.simd = _mm_div_pd(u.simd, other.u.simd);
+            }
+            else {
+                result.u.scalar = u.scalar / other.u.scalar;
+                return result;
+            }
+
+    #endif
+            result.u.scalar = result.get_scalar();
+        }
+
+        return result;
     }
 
     template<typename U = simd_type, typename = std::enable_if_t<!std::is_same_v<U, T>>>

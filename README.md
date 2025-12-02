@@ -70,8 +70,11 @@ This framework is still under development.
 * SIMD-based operations: SSE, SSE2, AVX, AVX2
 * AVX512 support is coming soon
 
-**Version:** 1.0
+## Update info
+**Version:** 1.1
 
+* TensorOps.h updated into 1.1 version : rand, randn, add, sub, mul, div fixed. Released new operation flatten, sum and max
+* ScalarType.h updated into 1.1 version : added operator(+, -, *, /) in the class
 ---
 
 ## Release Schedule
@@ -107,8 +110,8 @@ full({3, 3}, 1.0f); // Maximum dimension is 32
 zeros({3, 3});
 ones({3, 3});
 twos({3 ,3});
-rand({3, 3});
-randn({3, 3});
+rand<vectra::type>({3, 3});
+randn<vectra::type>({3, 3});
 
 dot(Tensor A, Tensor B);
 ```

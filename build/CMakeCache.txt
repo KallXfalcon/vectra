@@ -198,15 +198,6 @@ vectra_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 vectra_SOURCE_DIR:STATIC=/home/falcontreatred/vectra
 
-//Value Computed by CMake
-vectra_test_BINARY_DIR:STATIC=/home/falcontreatred/vectra/build/test
-
-//Value Computed by CMake
-vectra_test_IS_TOP_LEVEL:STATIC=OFF
-
-//Value Computed by CMake
-vectra_test_SOURCE_DIR:STATIC=/home/falcontreatred/vectra/test
-
 
 ########################
 # INTERNAL cache entries

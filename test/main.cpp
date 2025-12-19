@@ -4,12 +4,9 @@
 
 int main(){
 
-    Tensor<vectra::float32> aten = randn<vectra::float32>({3, 3});
-    Tensor<vectra::float32> bten = randn<vectra::float32>({3, 3});
-    Tensor<vectra::float32> result = add(aten, bten);
+    Tensor<vectra::float32> ten = full({3, 3}, 2.0f);
+    Tensor<vectra::float32> result = exp(ten);
 
-    std::cout << aten;
-    std::cout << bten;
     std::cout << result;
 
     return 0;

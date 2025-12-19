@@ -1,0 +1,6 @@
+README.md
+setup.py
+pyvectra.egg-info/PKG-INFO
+pyvectra.egg-info/SOURCES.txt
+pyvectra.egg-info/dependency_links.txt
+pyvectra.egg-info/top_level.txt

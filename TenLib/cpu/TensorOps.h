@@ -1,10 +1,10 @@
 
 /*
  *
- * TensorOps.h (v1.1)
+ * TensorOps.h (v1.2)
  * 
- * v1.1 updated : rand, randn, arithmetic bug fixed!
- *                added new operation(flatten, sum)
+ * v1.2 updated : * Add tuple operation for Python
+ *                * full, zeros, ones, twos. These function might has chance to constant folding      
  * 
  * Copyright(C) 2025 KallXfalcon
  * GitHub : https://github.com/KallXfalcon
@@ -28,21 +28,34 @@
 #include <VectorUtility/vector.h>
 #include <algorithm>
 #include <iostream>
+#include <cassert>
 #include <fstream>
 #include <vector>
 #include <random>
 #include <cmath>
+
+enum class TensorInit{
+    None,
+    Full,
+    Zeros,
+    Ones,
+    Twos,
+    Randomn,
+    Randomu
+};
 
 template<typename T>
 class Tensor {
 public:
     std::vector<size_t> shape;
     utils::vector<ScalarType<T>> data;
+    TensorInit init = TensorInit::None;
+    T init_value{};
 
     Tensor() = default;
 
     Tensor(const std::vector<size_t>& shape_)
-        : shape(shape_)
+    : shape(std::move(shape_))
     {
         size_t total = 1;
         for (auto dim : shape_) total *= dim;
@@ -154,11 +167,14 @@ std::ostream& operator<<(std::ostream& os, const Tensor<T>& t)
 */
 
 template<typename T>
-T maxArrayTemplate(const T* array, int n)
+T maxArrayTemplate(const ScalarType<T>* array, size_t n)
 {
-    T mx = array[0];
-    for(size_t i=1; i<n; i++){
-        if(array[i] > mx) mx = array[i];
+    T mx = array[0].get_scalar();
+
+    for (size_t i = 1; i < n; i++) {
+        T val = array[i].get_scalar();
+        if (val > mx)
+            mx = val;
     }
     return mx;
 }
@@ -176,37 +192,48 @@ T maxArrayTemplate(const T* array, int n)
 template<typename T>
 Tensor<T> full(const std::vector<size_t>& shape, const T value)
 {
-    return Tensor<T>(shape, value);
+    Tensor<T> t(shape, value);
+    t.init = TensorInit::Full;
+    return t;
 }
 
 template<typename T>
 Tensor<T> zeros(const std::vector<size_t>& shape)
 {
-    return Tensor<T>(shape, T{0});
+    Tensor<T> t(shape, T{0});
+    t.init = TensorInit::Zeros;
+    return t;
 }
 
 template<typename T>
 Tensor<T> ones(const std::vector<size_t>& shape)
 {
-    return Tensor<T>(shape, T{1});
+    Tensor<T> t(shape, T{1});
+    t.init = TensorInit::Ones;
+    return t;
 }
 
 template<typename T>
 Tensor<T> twos(const std::vector<size_t>& shape)
-{
-    return Tensor<T>(shape, T{2});
+{   
+    Tensor<T> t(shape, T{2});
+    t.init = TensorInit::Twos;
+    return t;
 }
 
 template<typename T>
 Tensor<T> rand(const std::vector<size_t>& shape)
 {
+    static_assert(std::is_floating_point<T>::value, "rand() only supports floating-point types");
+
     Tensor<T> out(shape);
 
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_real_distribution<T> dist(0.0, 1.0);
+    static thread_local std::random_device rd;
+    static thread_local std::mt19937 gen(rd());
+    static thread_local std::uniform_real_distribution<T> dist(0.0, 1.0);
 
-    for (size_t i = 0; i < out.data.size(); i++) out.data.data[i] = dist(gen);
+    for (size_t i = 0; i < out.data.size(); i++)
+        out.data.data[i] = dist(gen);
 
     return out;
 }
@@ -214,13 +241,17 @@ Tensor<T> rand(const std::vector<size_t>& shape)
 template<typename T>
 Tensor<T> randn(const std::vector<size_t>& shape)
 {
+    static_assert(std::is_floating_point<T>::value,
+                  "randn() only supports floating-point types");
+
     Tensor<T> out(shape);
 
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    std::normal_distribution<T> dist(0, 1);
+    static thread_local std::random_device rd;
+    static thread_local std::mt19937 gen(rd());
+    static thread_local std::normal_distribution<T> dist(0.0, 1.0);
 
-    for (size_t i = 0; i < out.data.size(); i++) out.data.data[i] = dist(gen);
+    for (size_t i = 0; i < out.data.size(); i++)
+        out.data.data[i] = dist(gen);
 
     return out;
 }
@@ -268,8 +299,8 @@ Tensor<T> div(const Tensor<T>& A, const Tensor<T>& B)
         exit(EXIT_FAILURE);
     }
     Tensor<T> out(A.shape, T{0});
-    for (size_t i = 0; i < A.Data.size(); ++i) {
-        if(B.Data[i] == T{0}){
+    for (size_t i = 0; i < A.data.size(); ++i) {
+        if(B.data.data[i] == T{0}){
             fprintf(stderr, "vectra div() : cannot divide by zero!\n");
             exit(EXIT_FAILURE);
         }
@@ -336,10 +367,11 @@ Tensor<T> dot(const Tensor<T>& A, const Tensor<T>& B)
 template<typename T>
 Tensor<T> max(const Tensor<T>& t1)
 {
-    Tensor<T> out({1}, 0);
+    Tensor<T> out({1}, T{0});
 
-    out.data.data[0] = maxArrayTemplate(t1.data.data, t1.data.size);
+    T mx = maxArrayTemplate(t1.data.data, t1.data.size());
 
+    out.data.data[0] = ScalarType<T>(mx);
     return out;
 }
 
@@ -369,6 +401,171 @@ Tensor<T> sum(const Tensor<T>& t1)
         out.data.data[0] += t1.data.data[i];
 
     return out;
+}
+
+template<typename T>
+Tensor<T> exp_tensor(const Tensor<T>& t1)
+{
+    Tensor<T> out(t1.shape, T{0});
+
+    for(size_t i=0; i<t1.data.size(); ++i){
+        out.data.data[i] = t1.data.data[i].exp();
+    }
+
+    return out;
+}
+
+/*
+ *
+ * Tuple convertion (Python) especially
+ * 
+*/
+
+template<typename T>
+struct TensorTuple {
+    Tensor<T> tensor;
+    const std::vector<size_t>* shape;
+};
+
+template<typename T, typename F>
+TensorTuple<T>
+unary_tuple_op(const TensorTuple<T>& t, F&& fn)
+{
+    const auto& [tensor, _] = t;
+    Tensor<T> result = fn(tensor);
+    return { std::move(result), &result.shape };
+}
+
+template<typename T, typename F>
+TensorTuple<T>
+binary_tuple_op(const TensorTuple<T>& A,
+                const TensorTuple<T>& B,
+                F&& fn)
+{
+    const auto& [A_tensor, _A] = A;
+    const auto& [B_tensor, _B] = B;
+    Tensor<T> result = fn(A_tensor, B_tensor);
+    return { std::move(result), &result.shape };
+}
+
+template<typename T>
+TensorTuple<T>
+full_tuple(const std::vector<size_t>& shape, T value)
+{
+    Tensor<T> t(shape, value);
+    t.init = TensorInit::Full;
+    return { std::move(t), &t.shape };
+}
+
+template<typename T>
+TensorTuple<T>
+ones_tuple(const std::vector<size_t>& shape)
+{
+    Tensor<T> t(shape, T{1});
+    t.init = TensorInit::Ones;
+    return { std::move(t), &t.shape };
+}
+
+template<typename T>
+TensorTuple<T>
+twos_tuple(const std::vector<size_t>& shape)
+{
+    Tensor<T> t(shape, T{2});
+    t.init = TensorInit::Twos;
+    return { std::move(t), &t.shape };
+}
+
+template<typename T>
+TensorTuple<T>
+zeros_tuple(const std::vector<size_t>& shape)
+{
+    Tensor<T> t(shape, T{0});
+    t.init = TensorInit::Zeros;
+    return { std::move(t), &t.shape };
+}
+
+template<typename T>
+TensorTuple<T>
+rand_tuple(const std::vector<size_t>& shape)
+{
+    Tensor<T> out(shape);
+
+    static thread_local std::mt19937 gen{ std::random_device{}() };
+    static thread_local std::uniform_real_distribution<T> dist(0.0, 1.0);
+
+    for (size_t i = 0; i < out.data.size(); ++i)
+        out.data.data[i] = dist(gen);
+
+    return { std::move(out), &out.shape };
+}
+
+template<typename T>
+TensorTuple<T>
+randn_tuple(const std::vector<size_t>& shape)
+{
+    Tensor<T> out(shape);
+
+    static thread_local std::mt19937 gen{ std::random_device{}() };
+    static thread_local std::normal_distribution<T> dist(0.0, 1.0);
+
+    for (size_t i = 0; i < out.data.size(); ++i)
+        out.data.data[i] = dist(gen);
+
+    return { std::move(out), &out.shape };
+}
+
+template<typename T>
+TensorTuple<T> add_tuple(const TensorTuple<T>& A, const TensorTuple<T>& B)
+{
+    return binary_tuple_op<T>(A, B, add<T>);
+}
+
+template<typename T>
+TensorTuple<T> sub_tuple(const TensorTuple<T>& A, const TensorTuple<T>& B)
+{
+    return binary_tuple_op<T>(A, B, sub<T>);
+}
+
+template<typename T>
+TensorTuple<T> mul_tuple(const TensorTuple<T>& A, const TensorTuple<T>& B)
+{
+    return binary_tuple_op<T>(A, B, mul<T>);
+}
+
+template<typename T>
+TensorTuple<T> div_tuple(const TensorTuple<T>& A, const TensorTuple<T>& B)
+{
+    return binary_tuple_op<T>(A, B, div<T>);
+}
+
+template<typename T>
+TensorTuple<T> dot_tuple(const TensorTuple<T>& A, const TensorTuple<T>& B)
+{
+    return binary_tuple_op<T>(A, B, dot<T>);
+}
+
+template<typename T>
+TensorTuple<T> max_tuple(const TensorTuple<T>& t)
+{
+    return unary_tuple_op<T>(t, max<T>);
+}
+
+template<typename T>
+TensorTuple<T> flatten_tuple(const TensorTuple<T>& t)
+{
+    return unary_tuple_op<T>(t, flatten<T>);
+}
+
+template<typename T>
+TensorTuple<T> sum_tuple(const TensorTuple<T>& t)
+{
+    return unary_tuple_op<T>(t, sum<T>);
+}
+
+template<typename T>
+TensorTuple<T> exp_tuple(const TensorTuple<T>& t)
+{
+    return unary_tuple_op<T>(t, exp_tensor<T>);
 }
 
 #endif // __cplusplus

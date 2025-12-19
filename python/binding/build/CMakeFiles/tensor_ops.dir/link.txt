@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -shared  -o tensor_ops.so CMakeFiles/tensor_ops.dir/binding.cc.o 

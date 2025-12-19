@@ -1,0 +1,7 @@
+/home/falcontreatred/vectra/python/binding/build/CMakeFiles/tensor_ops.dir
+/home/falcontreatred/vectra/python/binding/build/CMakeFiles/edit_cache.dir
+/home/falcontreatred/vectra/python/binding/build/CMakeFiles/rebuild_cache.dir
+/home/falcontreatred/vectra/python/binding/build/CMakeFiles/list_install_components.dir
+/home/falcontreatred/vectra/python/binding/build/CMakeFiles/install.dir
+/home/falcontreatred/vectra/python/binding/build/CMakeFiles/install/local.dir
+/home/falcontreatred/vectra/python/binding/build/CMakeFiles/install/strip.dir
